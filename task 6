@@ -1,0 +1,59 @@
+#The modified Python script fetches weather forecast data for a specified city using the OpenWeatherMap API. It processes the API response to extract temperature and humidity data over time. The data is then visualized using matplotlib and seaborn with two line plots: one for temperature and one for humidity. The script also includes error handling for the API response and improves readability with custom plot settings.
+import requests
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime
+
+# Define API credentials and city
+API_KEY = 'your_openweathermap_api_key'  # Replace with your OpenWeatherMap API key
+CITY = 'London'
+BASE_URL = 'http://api.openweathermap.org/data/2.5/forecast'
+
+# Prepare the API request
+params = {
+    'q': CITY,
+    'appid': API_KEY,
+    'units': 'metric'  # Fetch temperature in Celsius
+}
+
+# Make the API request and fetch data
+response = requests.get(BASE_URL, params=params)
+if response.status_code == 200:
+    weather_data = response.json()
+else:
+    raise Exception(f"Error fetching data from OpenWeatherMap: {response.status_code}")
+
+# Extract forecast data (dates, temperatures, humidity)
+dates = []
+temperatures = []
+humidity = []
+
+# Loop through the list of forecasts
+for forecast in weather_data['list']:
+    forecast_time = datetime.fromtimestamp(forecast['dt'])  # Convert Unix timestamp to datetime
+    dates.append(forecast_time)
+    temperatures.append(forecast['main']['temp'])
+    humidity.append(forecast['main']['humidity'])
+
+# Plot temperature data using Matplotlib and Seaborn
+plt.figure(figsize=(12, 8))
+
+# Subplot for temperature
+plt.subplot(2, 1, 1)
+sns.lineplot(x=dates, y=temperatures, marker='o', color='red')
+plt.title(f"Temperature Forecast for {CITY}", fontsize=16)
+plt.ylabel('Temperature (°C)', fontsize=12)
+plt.xticks(rotation=45)
+plt.grid(True)
+
+# Subplot for humidity
+plt.subplot(2, 1, 2)
+sns.lineplot(x=dates, y=humidity, marker='o', color='blue')
+plt.title(f"Humidity Forecast for {CITY}", fontsize=16)
+plt.ylabel('Humidity (%)', fontsize=12)
+plt.xticks(rotation=45)
+plt.grid(True)
+
+# Adjust layout for better readability
+plt.tight_layout()
+plt.show()
